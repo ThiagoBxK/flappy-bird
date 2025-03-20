@@ -1,30 +1,31 @@
-import { createImage, drawImage } from "./functions.js";
+import { createImage } from "./functions.js";
 import { Position, Size } from "./types.js";
 
 export default class Bird {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  interval: undefined | number;
-  colisions: Array<{
-    name: string;
-    checkColision: (position: Position) => boolean;
-  }>;
+  loop: undefined | number;
+  groundColision: {
+    check: (position: Position) => boolean;
+  };
   state: {
+    image: Promise<HTMLImageElement>;
     velocity: number;
     gravity: number;
     position: Position;
     size: Size;
-    startGame: () => any;
-    endGame: () => any;
+    startLoop: () => any;
+    endLoop: () => any;
   };
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    this.interval = undefined;
+    this.loop = undefined;
     this.state = {
-      velocity: 3,
+      image: createImage("../placeholder/sprites/bird/upflap.png"),
+      velocity: 1,
       gravity: 0.1,
       position: {
         posX: 0,
@@ -32,52 +33,42 @@ export default class Bird {
       },
       size: {
         height: 24,
-        width: 24,
+        width: 32,
       },
-      startGame: () => {
-        this.interval = setInterval(() => this.updateFrame(), 16.66666);
+      startLoop: () => {
+        this.loop = setInterval(() => this.updateFrame(), 16.66666);
       },
-      endGame: () => {
-        clearInterval(this.interval);
+      endLoop: () => {
+        clearInterval(this.loop);
         this.render();
       },
     };
 
-    this.colisions = [
-      {
-        name: "canva-bottom-colision",
-        checkColision: (position: Position) => {
-          const bottomPositionY = this.state.size.height;
+    // TEMPORARIO | TEMPORARY //
+    this.groundColision = {
+      check: (position: Position) => {
+        const bottomPositionY = 72 + 24;
 
-          if (position.posY >= this.canvas.height - bottomPositionY)
-            return true;
+        if (this.state.position.posY >= this.canvas.height - bottomPositionY)
+          return true;
 
-          const nextGravity = this.simulateGravity();
-          const nextPositionY = this.state.position.posY + nextGravity.velocity;
+        const nextGravity = this.simulateGravity();
+        const nextPositionY = this.state.position.posY + nextGravity.velocity;
 
-          if (nextPositionY + bottomPositionY >= this.canvas.height) {
-            const groundDistance =
-              this.canvas.height - (this.state.position.posY + bottomPositionY);
+        if (nextPositionY + bottomPositionY >= this.canvas.height) {
+          const groundDistance =
+            this.canvas.height - (this.state.position.posY + bottomPositionY);
 
-            this.state.velocity -= nextGravity.velocity - groundDistance;
-          }
+          this.state.velocity -= nextGravity.velocity - groundDistance;
+        }
 
-          return false;
-        },
+        return false;
       },
-    ];
+    };
   }
 
-  clearRect() {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-  }
-
-  checkColisions() {
-    const colisions = this.colisions.filter((colision) =>
-      colision.checkColision(this.state.position)
-    );
-
-    return colisions;
+  handleClickEvent(event: MouseEvent) {
+    this.state.velocity = -5;
   }
 
   simulateGravity() {
@@ -96,35 +87,19 @@ export default class Bird {
   }
 
   updateFrame() {
-    const colisions = this.checkColisions();
-    if (colisions.length) return this.state.endGame();
-
     this.simulateGravity().setup();
-
     this.render();
   }
 
-  // TEMPORARIO // TEMPORARY //
   async render() {
-    const context = this.context;
-    const canvas = this.canvas;
+    const image = await this.state.image;
 
-    drawImage(
-      context,
-      "../placeholder/background.jpg",
-      {
-        posX: 0,
-        posY: 0,
-      },
-      {
-        height: canvas.height,
-        width: canvas.width,
-      }
+    this.context.drawImage(
+      image,
+      this.state.position.posX,
+      this.state.position.posY,
+      this.state.size.width,
+      this.state.size.height
     );
-
-    drawImage(context, "../placeholder/bird.jpg", this.state.position, {
-      height: 24,
-      width: 32,
-    });
   }
 }
