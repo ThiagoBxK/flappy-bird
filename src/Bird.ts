@@ -24,7 +24,9 @@ export default class Bird {
 
     this.loop = undefined;
     this.state = {
-      image: createImage("../placeholder/sprites/bird/upflap.png"),
+      // image: createImage("../placeholder/sprites/bird/upflap.png"),
+
+      image: createImage("../placeholder/bird.jpg"),
       velocity: 1,
       gravity: 0.1,
       position: {

@@ -22,7 +22,7 @@ export default class Game {
 
     this.state = {
       startLoop: () => {
-        this.loop = setInterval(() => this.updateFrame(), 16.66666);
+        this.loop = setInterval(() => this.updateFrame(), 16);
       },
       endLoop: () => {
         clearInterval(this.loop);
@@ -35,11 +35,6 @@ export default class Game {
       ground: new Ground(canvas),
       bird: new Bird(canvas),
     };
-
-    // TEMPORARAY //
-    canvas.addEventListener("click", (event) => {
-      this.elements.bird.handleClickEvent(event);
-    });
   }
 
   start() {
@@ -47,12 +42,12 @@ export default class Game {
   }
 
   checkColision() {
-    if (
-      this.elements.bird.groundColision.check(
-        this.elements.ground.state.position
-      )
-    )
-      this.handleDefeat();
+    // if (
+    //   this.elements.bird.groundColision.check(
+    //     this.elements.ground.state.position
+    //   )
+    // )
+    //   this.handleDefeat();
   }
 
   handleDefeat() {
@@ -62,13 +57,13 @@ export default class Game {
   updateFrame() {
     this.checkColision();
     this.elements.background.updateFrame();
-    this.elements.bird.updateFrame();
+    // this.elements.bird.updateFrame();
     this.elements.ground.updateFrame();
   }
 
   async render() {
     await this.elements.background.render();
-    await this.elements.bird.render();
     await this.elements.ground.render();
+    // await this.elements.bird.render();
   }
 }
