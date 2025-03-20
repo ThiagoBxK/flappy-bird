@@ -1,107 +1,97 @@
 import { createImage } from "./functions.js";
+import Game from "./Game.js";
 import { Position, Size } from "./types.js";
 
 export default class Bird {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  loop: undefined | number;
-  groundColision: {
-    check: (position: Position) => boolean;
-  };
-  state: {
+  sprite: {
     image: Promise<HTMLImageElement>;
-    velocity: number;
-    gravity: number;
     position: Position;
     size: Size;
-    startLoop: () => any;
-    endLoop: () => any;
   };
+  state: {
+    gravitySpeed: number;
+    gravity: number;
+  };
+  game: Game;
+  nextEnd: boolean;
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, game: Game) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    this.loop = undefined;
+    this.nextEnd = false;
+    this.game = game;
     this.state = {
-      // image: createImage("../placeholder/sprites/bird/upflap.png"),
-
-      image: createImage("../placeholder/bird.jpg"),
-      velocity: 1,
+      gravitySpeed: 0,
       gravity: 0.1,
+    };
+
+    this.sprite = {
+      image: createImage("../placeholder/black.jpg"),
       position: {
-        posX: 0,
-        posY: 0,
+        posX: 24,
+        posY: 24,
       },
       size: {
         height: 24,
         width: 32,
       },
-      startLoop: () => {
-        this.loop = setInterval(() => this.updateFrame(), 16.66666);
-      },
-      endLoop: () => {
-        clearInterval(this.loop);
-        this.render();
-      },
     };
-
-    // TEMPORARIO | TEMPORARY //
-    this.groundColision = {
-      check: (position: Position) => {
-        const bottomPositionY = 72 + 24;
-
-        if (this.state.position.posY >= this.canvas.height - bottomPositionY)
-          return true;
-
-        const nextGravity = this.simulateGravity();
-        const nextPositionY = this.state.position.posY + nextGravity.velocity;
-
-        if (nextPositionY + bottomPositionY >= this.canvas.height) {
-          const groundDistance =
-            this.canvas.height - (this.state.position.posY + bottomPositionY);
-
-          this.state.velocity -= nextGravity.velocity - groundDistance;
-        }
-
-        return false;
-      },
-    };
-  }
-
-  handleClickEvent(event: MouseEvent) {
-    this.state.velocity = -5;
   }
 
   simulateGravity() {
-    let { velocity, gravity } = this.state;
-
-    velocity += gravity;
+    let { gravitySpeed, gravity } = this.state;
+    gravitySpeed += gravity;
 
     return {
-      setup: () => {
-        this.state.velocity = velocity;
-        this.state.position.posY += this.state.velocity;
+      updateGravity: () => {
+        this.state.gravitySpeed = gravitySpeed;
+        this.sprite.position.posY += this.state.gravitySpeed;
       },
-      velocity,
+      gravitySpeed,
       gravity,
     };
   }
 
-  updateFrame() {
-    this.simulateGravity().setup();
+  // GAMBIARRA TEMPORARIA //
+  __temporary_groundColision() {
+    if (this.nextEnd) return true;
+
+    const bottomPositionY = this.sprite.size.height + 72;
+    if (this.sprite.position.posY >= this.canvas.height - bottomPositionY)
+      return true;
+
+    const nextGravity = this.simulateGravity();
+    const nextPositionY = this.sprite.position.posY + nextGravity.gravitySpeed;
+
+    if (nextPositionY + bottomPositionY >= this.canvas.height) {
+      this.nextEnd = true;
+      const groundDistance =
+        this.canvas.height - (this.sprite.position.posY + bottomPositionY);
+      this.state.gravitySpeed -= nextGravity.gravitySpeed - groundDistance;
+    }
+
+    return false;
+  }
+  // -- -- -- -- -- --  //
+
+  async updateFrame() {
+    if (this.__temporary_groundColision()) return this.game.end();
+    this.simulateGravity().updateGravity();
     this.render();
   }
 
   async render() {
-    const image = await this.state.image;
+    const image = await this.sprite.image;
 
     this.context.drawImage(
       image,
-      this.state.position.posX,
-      this.state.position.posY,
-      this.state.size.width,
-      this.state.size.height
+      this.sprite.position.posX,
+      this.sprite.position.posY,
+      this.sprite.size.width,
+      this.sprite.size.height
     );
   }
 }

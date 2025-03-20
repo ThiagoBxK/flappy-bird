@@ -10,17 +10,17 @@ export default class Ground {
     speed: number;
   };
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, game: Game) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
     this.state = {
-      speed: 2,
+      speed: game.state.speed,
     };
 
     this.sprites = [
       this.createSprite({
-        image: createImage("../placeholder/purple.jpg"),
+        image: createImage("../placeholder/yellow.jpg"),
         position: {
           posX: 0,
           posY: this.canvas.height,
@@ -32,7 +32,7 @@ export default class Ground {
       }),
 
       this.createSprite({
-        image: createImage("../placeholder/yellow.jpg"),
+        image: createImage("../placeholder/purple.jpg"),
         position: {
           posX: this.canvas.width,
           posY: this.canvas.height,
@@ -43,6 +43,10 @@ export default class Ground {
         },
       }),
     ];
+  }
+
+  set speed(newSpeed: number) {
+    this.state.speed = newSpeed;
   }
 
   async createSprite(sprite: SpriteElement) {
@@ -62,12 +66,12 @@ export default class Ground {
 
       element.position.posX -= speed;
 
-      if (element.position.posX <= -element.size.width)
+      if (element.position.posX <= -this.canvas.width)
         element.position.posX = this.canvas.width;
     }
   }
 
-  updateFrame() {
+  async updateFrame() {
     this.moveBackground(this.state.speed);
     this.render();
   }

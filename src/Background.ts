@@ -1,4 +1,5 @@
 import { createImage } from "./functions.js";
+import Game from "./Game.js";
 import { SpriteElement } from "./types.js";
 
 export default class Background {
@@ -9,12 +10,12 @@ export default class Background {
     speed: number;
   };
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, game: Game) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
     this.state = {
-      speed: 2,
+      speed: game.state.speed,
     };
 
     this.sprites = [
@@ -44,6 +45,10 @@ export default class Background {
     ];
   }
 
+  set speed(newSpeed: number) {
+    this.state.speed = newSpeed;
+  }
+
   async createSprite(sprite: SpriteElement) {
     return {
       image: sprite.image,
@@ -61,14 +66,14 @@ export default class Background {
 
       element.position.posX -= speed;
 
-      if (element.position.posX <= -element.size.width)
+      if (element.position.posX <= -this.canvas.width)
         element.position.posX = this.canvas.width;
     }
   }
 
-  updateFrame() {
+  async updateFrame() {
     this.moveBackground(this.state.speed);
-    this.render();
+    await this.render();
   }
 
   async render() {

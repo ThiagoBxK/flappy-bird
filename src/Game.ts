@@ -12,15 +12,18 @@ export default class Game {
     bird: Bird;
   };
   state: {
+    speed: number;
     startLoop: () => any;
     endLoop: () => any;
   };
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
     this.loop = undefined;
 
     this.state = {
+      speed: 1,
       startLoop: () => {
         this.loop = setInterval(() => this.updateFrame(), 16);
       },
@@ -31,39 +34,34 @@ export default class Game {
     };
 
     this.elements = {
-      background: new Background(canvas),
-      ground: new Ground(canvas),
-      bird: new Bird(canvas),
+      background: new Background(canvas, this),
+      ground: new Ground(canvas, this),
+      bird: new Bird(canvas, this),
     };
+  }
+
+  set speed(newSpeed: number) {
+    this.elements.background.speed = newSpeed;
+    this.elements.ground.speed = newSpeed;
   }
 
   start() {
     this.state.startLoop();
   }
 
-  checkColision() {
-    // if (
-    //   this.elements.bird.groundColision.check(
-    //     this.elements.ground.state.position
-    //   )
-    // )
-    //   this.handleDefeat();
-  }
-
-  handleDefeat() {
+  end() {
     this.state.endLoop();
   }
 
-  updateFrame() {
-    this.checkColision();
-    this.elements.background.updateFrame();
-    // this.elements.bird.updateFrame();
-    this.elements.ground.updateFrame();
+  async updateFrame() {
+    await this.elements.background.updateFrame();
+    await this.elements.ground.updateFrame();
+    await this.elements.bird.updateFrame();
   }
 
   async render() {
     await this.elements.background.render();
     await this.elements.ground.render();
-    // await this.elements.bird.render();
+    await this.elements.bird.render();
   }
 }
