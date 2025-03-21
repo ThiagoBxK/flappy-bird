@@ -1,67 +1,78 @@
 import Background from "./Background.js";
 import Bird from "./Bird.js";
 import Ground from "./Ground.js";
+import { GameState } from "./types.js";
 
 export default class Game {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  loop: undefined | number;
+  state: GameState;
   elements: {
     background: Background;
     ground: Ground;
     bird: Bird;
   };
-  state: {
-    speed: number;
-    startLoop: () => any;
-    endLoop: () => any;
-  };
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
-    this.loop = undefined;
 
     this.state = {
+      fps: 60,
+      frames: 0,
       speed: 1,
-      startLoop: () => {
-        this.loop = setInterval(() => this.updateFrame(), 16);
-      },
-      endLoop: () => {
-        clearInterval(this.loop);
-        this.render();
-      },
+      interval: undefined,
     };
 
     this.elements = {
-      background: new Background(canvas, this),
-      ground: new Ground(canvas, this),
-      bird: new Bird(canvas, this),
+      background: new Background(canvas, this, {
+        sprite: "../assets/sprites/colors/red.jpg",
+      }),
+      ground: new Ground(canvas, this, {
+        sprite: "../assets/sprites/colors/purple.jpg",
+      }),
+      bird: new Bird(canvas, this, {
+        audios: {
+          flap: "../assets/audios/flap.mp3",
+        },
+        sprites: [
+          "../assets/sprites/colors/yellow.jpg",
+          "../assets/sprites/colors/yellow.jpg",
+          "../assets/sprites/colors/yellow.jpg",
+        ],
+      }),
     };
   }
 
-  set speed(newSpeed: number) {
-    this.elements.background.speed = newSpeed;
-    this.elements.ground.speed = newSpeed;
+  startGame() {
+    this.state.interval = setInterval(
+      () => this.updateFrame(),
+      1000 / this.state.fps
+    );
   }
 
-  start() {
-    this.state.startLoop();
+  endGame() {
+    clearInterval(this.state.interval);
+    this.render();
   }
 
-  end() {
-    this.state.endLoop();
+  async executeAction(
+    action: "updateFrame" | "render",
+    elements?: Array<string>
+  ) {
+    for await (const key of Object.keys(elements || this.elements)) {
+      const element = this.elements[key as keyof typeof this.elements];
+
+      element?.[action] && (await element[action]());
+    }
   }
 
   async updateFrame() {
-    await this.elements.background.updateFrame();
-    await this.elements.ground.updateFrame();
-    await this.elements.bird.updateFrame();
+    this.state.frames++;
+    this.executeAction("updateFrame");
   }
 
   async render() {
-    await this.elements.background.render();
-    await this.elements.ground.render();
-    await this.elements.bird.render();
+    this.executeAction("render");
   }
 }

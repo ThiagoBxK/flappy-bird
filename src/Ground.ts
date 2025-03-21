@@ -1,44 +1,62 @@
 import { createImage } from "./functions.js";
 import Game from "./Game.js";
-import { SpriteElement } from "./types.js";
+import { Position, Size, SpriteElement } from "./types.js";
+
+type Assets = {
+  sprite: string;
+};
 
 export default class Ground {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  sprites: Array<Promise<SpriteElement>>;
+  sprites: Array<
+    Promise<{
+      image: Promise<HTMLImageElement>;
+      position: Position;
+      size: Size;
+    }>
+  >;
+  height: number;
   state: {
     speed: number;
+    assets: Assets;
   };
 
-  constructor(canvas: HTMLCanvasElement, game: Game) {
+  constructor(canvas: HTMLCanvasElement, game: Game, assets: Assets) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
     this.state = {
       speed: game.state.speed,
+      assets: {
+        sprite: assets.sprite,
+      },
     };
 
+    this.height = 72;
     this.sprites = [
       this.createSprite({
-        image: createImage("../placeholder/yellow.jpg"),
+        image: createImage(this.state.assets.sprite),
+
         position: {
           posX: 0,
           posY: this.canvas.height,
         },
         size: {
-          height: 72,
+          height: this.height,
           width: this.canvas.width,
         },
       }),
 
       this.createSprite({
-        image: createImage("../placeholder/purple.jpg"),
+        image: createImage(this.state.assets.sprite),
+
         position: {
           posX: this.canvas.width,
           posY: this.canvas.height,
         },
         size: {
-          height: 72,
+          height: this.height,
           width: this.canvas.width,
         },
       }),

@@ -2,25 +2,32 @@ import { createImage } from "./functions.js";
 import Game from "./Game.js";
 import { SpriteElement } from "./types.js";
 
+type Assets = {
+  sprite: string;
+};
+
 export default class Background {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
   sprites: Array<Promise<SpriteElement>>;
+  game: Game;
   state: {
-    speed: number;
+    assets: Assets;
   };
 
-  constructor(canvas: HTMLCanvasElement, game: Game) {
+  constructor(canvas: HTMLCanvasElement, game: Game, assets: Assets) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
-
     this.state = {
-      speed: game.state.speed,
+      assets: {
+        sprite: assets.sprite,
+      },
     };
 
+    this.game = game;
     this.sprites = [
       this.createSprite({
-        image: createImage("../placeholder/red.jpg"),
+        image: createImage(this.state.assets.sprite),
         position: {
           posX: 0,
           posY: this.canvas.height,
@@ -32,7 +39,7 @@ export default class Background {
       }),
 
       this.createSprite({
-        image: createImage("../placeholder/blue.jpg"),
+        image: createImage(this.state.assets.sprite),
         position: {
           posX: this.canvas.width,
           posY: this.canvas.height,
@@ -45,8 +52,8 @@ export default class Background {
     ];
   }
 
-  set speed(newSpeed: number) {
-    this.state.speed = newSpeed;
+  get speed() {
+    return this.game.state.speed;
   }
 
   async createSprite(sprite: SpriteElement) {
@@ -72,7 +79,7 @@ export default class Background {
   }
 
   async updateFrame() {
-    this.moveBackground(this.state.speed);
+    this.moveBackground(this.speed);
     await this.render();
   }
 

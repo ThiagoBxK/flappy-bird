@@ -2,43 +2,53 @@ import { createImage } from "./functions.js";
 import Game from "./Game.js";
 import { Position, Size } from "./types.js";
 
+type Assets = {
+  audios: Record<string, string>;
+  sprites: Array<string>;
+};
+
 export default class Bird {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  sprite: {
-    image: Promise<HTMLImageElement>;
+  state: {
+    isNextFrameEnd: boolean;
+    spriteIndex: number;
     position: Position;
     size: Size;
-  };
-  state: {
     gravitySpeed: number;
     gravity: number;
+    assets: {
+      sprites: Array<Promise<HTMLImageElement>>;
+    };
   };
   game: Game;
-  nextEnd: boolean;
 
-  constructor(canvas: HTMLCanvasElement, game: Game) {
+  constructor(canvas: HTMLCanvasElement, game: Game, assets: Assets) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    this.nextEnd = false;
     this.game = game;
     this.state = {
-      gravitySpeed: 0,
-      gravity: 0.1,
-    };
-
-    this.sprite = {
-      image: createImage("../placeholder/black.jpg"),
+      isNextFrameEnd: false,
       position: {
         posX: 24,
         posY: 24,
       },
       size: {
-        height: 24,
-        width: 32,
+        width: 32 * 1.2, // 1.2 as scale
+        height: 24 * 1.2, // 1.2 as scale
+      },
+      gravitySpeed: 2,
+      gravity: 4,
+      spriteIndex: 0,
+      assets: {
+        sprites: assets.sprites.map((sprite) => createImage(sprite)),
       },
     };
+  }
+
+  get frames() {
+    return this.game.state.frames;
   }
 
   simulateGravity() {
@@ -48,50 +58,59 @@ export default class Bird {
     return {
       updateGravity: () => {
         this.state.gravitySpeed = gravitySpeed;
-        this.sprite.position.posY += this.state.gravitySpeed;
+        this.state.position.posY += this.state.gravitySpeed;
       },
       gravitySpeed,
       gravity,
     };
   }
 
-  // GAMBIARRA TEMPORARIA //
-  __temporary_groundColision() {
-    if (this.nextEnd) return true;
+  checkGroundColision() {
+    const colisionPosY = this.canvas.height - this.state.size.height - 72;
+    const elementPosY = this.state.position.posY;
+    const nextPositionY = elementPosY + this.simulateGravity().gravitySpeed;
 
-    const bottomPositionY = this.sprite.size.height + 72;
-    if (this.sprite.position.posY >= this.canvas.height - bottomPositionY)
+    if (this.state.isNextFrameEnd) {
+      this.state.position.posY = colisionPosY;
       return true;
-
-    const nextGravity = this.simulateGravity();
-    const nextPositionY = this.sprite.position.posY + nextGravity.gravitySpeed;
-
-    if (nextPositionY + bottomPositionY >= this.canvas.height) {
-      this.nextEnd = true;
-      const groundDistance =
-        this.canvas.height - (this.sprite.position.posY + bottomPositionY);
-      this.state.gravitySpeed -= nextGravity.gravitySpeed - groundDistance;
     }
+
+    if (nextPositionY >= colisionPosY) this.state.isNextFrameEnd = true;
 
     return false;
   }
-  // -- -- -- -- -- --  //
+
+  updateSprite() {
+    if (this.frames % 8) return;
+
+    this.state.spriteIndex =
+      this.state.spriteIndex >= this.state.assets.sprites.length - 1
+        ? 0
+        : (this.state.spriteIndex += 1);
+  }
 
   async updateFrame() {
-    if (this.__temporary_groundColision()) return this.game.end();
+    if (this.checkGroundColision()) return this.game.endGame();
+
     this.simulateGravity().updateGravity();
+    this.updateSprite();
     this.render();
   }
 
-  async render() {
-    const image = await this.sprite.image;
+  async drawSprite(spriteIndex: number) {
+    const { position, size, assets } = this.state;
+    const image = await assets.sprites[spriteIndex];
 
     this.context.drawImage(
       image,
-      this.sprite.position.posX,
-      this.sprite.position.posY,
-      this.sprite.size.width,
-      this.sprite.size.height
+      position.posX,
+      position.posY,
+      size.width,
+      size.height
     );
+  }
+
+  async render() {
+    await this.drawSprite(this.state.spriteIndex);
   }
 }

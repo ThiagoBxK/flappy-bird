@@ -13,3 +13,10 @@ export type SpriteElement = {
   position: Position;
   size: Size;
 };
+
+export type GameState = {
+  fps: number;
+  frames: number;
+  speed: number;
+  interval: number | undefined;
+};
