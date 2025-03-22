@@ -1,83 +1,100 @@
 import { createImage } from "./functions.js";
+import { BirdAssets, BirdState } from "./types.js";
 import Game from "./Game.js";
-import { Position, Size } from "./types.js";
-
-type Assets = {
-  audios: Record<string, string>;
-  sprites: Array<string>;
-};
 
 export default class Bird {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  state: {
-    isNextFrameEnd: boolean;
-    spriteIndex: number;
-    position: Position;
-    size: Size;
-    gravitySpeed: number;
-    gravity: number;
-    assets: {
-      sprites: Array<Promise<HTMLImageElement>>;
-    };
-  };
-  game: Game;
+  Game: Game;
+  state: BirdState;
 
-  constructor(canvas: HTMLCanvasElement, game: Game, assets: Assets) {
+  constructor(canvas: HTMLCanvasElement, Game: Game, assets: BirdAssets) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    this.game = game;
+    this.Game = Game;
     this.state = {
       isNextFrameEnd: false,
+      spriteIndex: 0,
       position: {
         posX: 24,
         posY: 24,
       },
       size: {
-        width: 32 * 1.2, // 1.2 as scale
-        height: 24 * 1.2, // 1.2 as scale
+        width: 32 * 1.2,
+        height: 24 * 1.2,
       },
-      gravitySpeed: 2,
-      gravity: 4,
-      spriteIndex: 0,
+      physics: {
+        speed: 1,
+        gravity: 0.1,
+      },
       assets: {
+        audios: assets.audios,
         sprites: assets.sprites.map((sprite) => createImage(sprite)),
+      },
+      collisions: [this.checkGroundCollision.bind(this)],
+      events: {
+        flap: () => this.flap(),
       },
     };
   }
 
   get frames() {
-    return this.game.state.frames;
+    return this.Game.state.frames;
+  }
+
+  flap() {
+    this.state.physics.speed = -6;
+
+    const audio = new Audio(this.state.assets.audios.flap);
+    audio.play();
   }
 
   simulateGravity() {
-    let { gravitySpeed, gravity } = this.state;
-    gravitySpeed += gravity;
+    let { speed, gravity } = this.state.physics;
+    speed += gravity;
 
     return {
       updateGravity: () => {
-        this.state.gravitySpeed = gravitySpeed;
-        this.state.position.posY += this.state.gravitySpeed;
+        this.state.physics.speed = speed;
+        this.state.position.posY += this.state.physics.speed;
       },
-      gravitySpeed,
+      speed,
       gravity,
     };
   }
 
-  checkGroundColision() {
-    const colisionPosY = this.canvas.height - this.state.size.height - 72;
-    const elementPosY = this.state.position.posY;
-    const nextPositionY = elementPosY + this.simulateGravity().gravitySpeed;
+  fixOverlapCollisionY(object: any, collisionPosY: any) {
+    const objectNextPosition = object.posY + (object.speed + object.gravity);
+    const exceededDistance = objectNextPosition - collisionPosY;
 
-    if (this.state.isNextFrameEnd) {
-      this.state.position.posY = colisionPosY;
-      return true;
+    return {
+      nextSpeed: object.speed - exceededDistance,
+    };
+  }
+
+  checkGroundCollision() {
+    const collisionPosY =
+      this.canvas.height -
+      this.state.size.height -
+      this.Game.elements.ground.height;
+
+    if (this.state.isNextFrameEnd) return true;
+    else if (this.state.position.posY >= collisionPosY) {
+      const { nextSpeed } = this.fixOverlapCollisionY(
+        { ...this.state.position, ...this.state.physics },
+        collisionPosY
+      );
+
+      this.state.physics.speed = nextSpeed;
+      this.state.isNextFrameEnd = true;
     }
 
-    if (nextPositionY >= colisionPosY) this.state.isNextFrameEnd = true;
-
     return false;
+  }
+
+  checkCollisions() {
+    for (const collision of this.state.collisions) return collision();
   }
 
   updateSprite() {
@@ -90,7 +107,7 @@ export default class Bird {
   }
 
   async updateFrame() {
-    if (this.checkGroundColision()) return this.game.endGame();
+    if (this.checkCollisions()) return this.Game.endGame();
 
     this.simulateGravity().updateGravity();
     this.updateSprite();

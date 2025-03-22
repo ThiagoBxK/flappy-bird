@@ -36,12 +36,17 @@ export default class Game {
           flap: "../assets/audios/flap.mp3",
         },
         sprites: [
-          "../assets/sprites/colors/yellow.jpg",
-          "../assets/sprites/colors/yellow.jpg",
-          "../assets/sprites/colors/yellow.jpg",
+          "../assets/sprites/bird/down-flap.png",
+          "../assets/sprites/bird/mid-flap.png",
+          "../assets/sprites/bird/up-flap.png",
         ],
       }),
     };
+
+    // Temporary
+    canvas.addEventListener("click", () => {
+      this.elements.bird.flap();
+    });
   }
 
   startGame() {
