@@ -21,12 +21,12 @@ export default class Bird {
         posY: 24,
       },
       size: {
-        width: 32 * 1.2,
-        height: 24 * 1.2,
+        width: 32 * 1,
+        height: 24 * 1,
       },
       physics: {
-        speed: 1,
-        gravity: 0.1,
+        speed: 1.5,
+        gravity: 0.3,
       },
       assets: {
         audios: assets.audios,
@@ -44,7 +44,7 @@ export default class Bird {
   }
 
   flap() {
-    this.state.physics.speed = -6;
+    this.state.physics.speed = -8;
 
     const audio = new Audio(this.state.assets.audios.flap);
     audio.play();

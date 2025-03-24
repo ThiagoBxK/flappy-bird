@@ -1,6 +1,7 @@
 import Background from "./Background.js";
 import Bird from "./Bird.js";
 import Ground from "./Ground.js";
+import ScoreboardUI from "./ScoreboardUI.js";
 import { GameState } from "./types.js";
 
 export default class Game {
@@ -11,6 +12,7 @@ export default class Game {
     background: Background;
     ground: Ground;
     bird: Bird;
+    scoreboardUI: ScoreboardUI;
   };
 
   constructor(canvas: HTMLCanvasElement) {
@@ -26,21 +28,26 @@ export default class Game {
 
     this.elements = {
       background: new Background(canvas, this, {
-        sprite: "../assets/sprites/colors/red.jpg",
+        sprite: "../assets/sprites/scenario/default-day.jpg",
+        // sprite: "../assets/sprites/colors/blue.jpg",
       }),
+
       ground: new Ground(canvas, this, {
-        sprite: "../assets/sprites/colors/purple.jpg",
+        sprite: "../assets/sprites/ground.jpg",
+        // sprite: "../assets/sprites/colors/red.jpg",
       }),
       bird: new Bird(canvas, this, {
         audios: {
           flap: "../assets/audios/flap.mp3",
         },
         sprites: [
+          // "../assets/sprites/colors/yellow.jpg",
           "../assets/sprites/bird/down-flap.png",
           "../assets/sprites/bird/mid-flap.png",
           "../assets/sprites/bird/up-flap.png",
         ],
       }),
+      scoreboardUI: new ScoreboardUI(canvas),
     };
 
     // Temporary
