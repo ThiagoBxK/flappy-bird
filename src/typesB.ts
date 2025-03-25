@@ -14,6 +14,17 @@ export type SpriteElement = {
   size: Size;
 };
 
+export type Physics = {
+  speed: number;
+  gravity: number;
+};
+
+export type GravitySimulation = {
+  applyGravity: () => void;
+  speed: number;
+  gravity: number;
+};
+
 export interface IDynamicLayer {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
@@ -32,4 +43,22 @@ export interface IDynamicLayer {
   drawAllSprites: (speed: number) => void;
   updateFrame: () => void;
   render: () => void;
+}
+
+export interface IBird {
+  canvas: HTMLCanvasElement;
+  context: CanvasRenderingContext2D;
+  state: {
+    spriteIndex: number;
+    maxSpeed: number;
+    position: Position;
+    size: Size;
+    physics: Physics;
+  };
+  sprites: Array<Promise<HTMLImageElement>>;
+  moveSprite: (speed: number) => void;
+  drawSprite: () => void;
+  updateFrame: () => void;
+  render: () => void;
+  simulateGravity: () => GravitySimulation;
 }
