@@ -1,101 +1,89 @@
 import { createImage } from "./functions.js";
-import Game from "./Game.js";
-import { SpriteElement } from "./types.js";
+import { SpriteElement, Position, Size, IDynamicLayer } from "./typesB.js";
 
-type Assets = {
-  sprite: string;
-};
-
-export default class Background {
+export default class Background implements IDynamicLayer {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  sprites: Array<Promise<SpriteElement>>;
-  game: Game;
   state: {
-    assets: Assets;
+    speed: number;
+    maxSpeed: number;
+    size: Size;
+    assets: {
+      spritePath: string;
+    };
   };
+  sprites: Array<SpriteElement>;
 
-  constructor(canvas: HTMLCanvasElement, game: Game, assets: Assets) {
+  constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.context = canvas.getContext("2d") as CanvasRenderingContext2D;
+
     this.state = {
+      speed: 1,
+      maxSpeed: 60,
+      size: {
+        height: canvas.height,
+        width: canvas.width,
+      },
       assets: {
-        sprite: assets.sprite,
+        spritePath: "../assets/sprites/scenario/default-day.jpg",
       },
     };
 
-    this.game = game;
     this.sprites = [
-      this.createSprite({
-        image: createImage(this.state.assets.sprite),
+      {
+        image: createImage(this.state.assets.spritePath),
         position: {
           posX: 0,
-          posY: this.canvas.height,
+          posY: canvas.height - this.state.size.height,
         },
-        size: {
-          height: this.canvas.height,
-          width: this.canvas.width,
-        },
-      }),
-
-      this.createSprite({
-        image: createImage(this.state.assets.sprite),
+        size: this.state.size,
+      },
+      {
+        image: createImage(this.state.assets.spritePath),
         position: {
-          posX: this.canvas.width,
-          posY: this.canvas.height,
+          posX: canvas.width,
+          posY: canvas.height - this.state.size.height,
         },
-        size: {
-          height: this.canvas.height,
-          width: this.canvas.width,
-        },
-      }),
+        size: this.state.size,
+      },
     ];
   }
 
-  get speed() {
-    return this.game.state.speed;
+  moveSprite(sprite: SpriteElement, speed: number): void {
+    sprite.position.posX -= Math.min(speed, this.state.maxSpeed);
+
+    if (sprite.position.posX <= -this.canvas.width)
+      sprite.position.posX = this.canvas.width;
   }
 
-  async createSprite(sprite: SpriteElement) {
-    return {
-      image: sprite.image,
-      position: {
-        posX: sprite.position.posX,
-        posY: sprite.position.posY - sprite.size.height,
-      },
-      size: sprite.size,
-    };
+  moveAllSprites(speed: number): void {
+    for (const sprite of this.sprites) this.moveSprite(sprite, speed);
   }
 
-  async moveBackground(speed: number) {
-    for (let sprite of this.sprites) {
-      const element = await sprite;
-
-      element.position.posX -= speed;
-
-      if (element.position.posX <= -this.canvas.width)
-        element.position.posX = this.canvas.width;
-    }
+  drawSprite(image: HTMLImageElement, position: Position, size: Size): void {
+    this.context.drawImage(
+      image,
+      position.posX,
+      position.posY,
+      size.width,
+      size.height
+    );
   }
 
-  async updateFrame() {
-    this.moveBackground(this.speed);
-    await this.render();
-  }
-
-  async render() {
-    const sprites = await Promise.all(this.sprites.map((sprite) => sprite));
-
-    for (const sprite of sprites) {
+  async drawAllSprites(): Promise<void> {
+    for await (const sprite of this.sprites) {
       const image = await sprite.image;
-
-      this.context.drawImage(
-        image,
-        sprite.position.posX,
-        sprite.position.posY,
-        sprite.size.width,
-        sprite.size.height
-      );
+      this.drawSprite(image, sprite.position, sprite.size);
     }
+  }
+
+  updateFrame(): void {
+    this.drawAllSprites();
+    this.moveAllSprites(this.state.speed);
+  }
+
+  render(): void {
+    this.drawAllSprites();
   }
 }
