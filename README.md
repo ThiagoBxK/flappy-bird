@@ -6,12 +6,12 @@ O principal objetivo desse projeto é aprender melhores práticas para meu códi
 
 ## Propriedades
 
-[✅] A força da gravidade é aplicada no pássaro.
-[✅] O pássaro colide com o chão.
-[✅] O fundo e o chão têm um efeito de rolagem infinita.
-[❌] O jogo possui canos que o pássaro pode passar entre eles.
-[❌] Colisão com os canos.
-[❌] O jogo possui uma tela inicial e uma tela de perda.
+[✅] A força da gravidade é aplicada no pássaro.  
+[✅] O pássaro colide com o chão.  
+[✅] O fundo e o chão têm um efeito de rolagem infinita.  
+[❌] O jogo possui canos que o pássaro pode passar entre eles.  
+[❌] Colisão com os canos.  
+[❌] O jogo possui uma tela inicial e uma tela de perda.  
 
 ## 🚀 Tecnologias Utilizadas
 
