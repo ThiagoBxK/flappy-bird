@@ -14,31 +14,22 @@ export type SpriteElement = {
   size: Size;
 };
 
-export type GameState = {
-  fps: number;
-  frames: number;
+export type Physics = {
   speed: number;
-  interval: number | undefined;
+  gravity: number;
 };
 
-export type BirdAssets = {
-  audios: Record<string, string>;
-  sprites: Array<string>;
+export type GravitySimulation = {
+  applyGravity: () => void;
+  speed: number;
+  gravity: number;
 };
 
-export type BirdState = {
-  isNextFrameEnd: boolean;
-  spriteIndex: number;
-  position: Position;
+export type DynamicLayerState = {
+  speed: number;
+  maxSpeed: number;
   size: Size;
-  physics: {
-    speed: number;
-    gravity: number;
-  };
   assets: {
-    audios: Record<string, string>;
-    sprites: Array<Promise<HTMLImageElement>>;
+    spritePath: string;
   };
-  collisions: Array<() => boolean>;
-  events: Record<string, () => any>;
 };

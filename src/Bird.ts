@@ -1,8 +1,7 @@
 import { createImage } from "./functions.js";
-import { Size } from "./types.js";
-import { GravitySimulation, IBird, Physics, Position } from "./typesB.js";
+import { GravitySimulation, Physics, Position, Size } from "./types.js";
 
-export default class Bird implements IBird {
+export default class Bird {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
   state: {

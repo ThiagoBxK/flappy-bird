@@ -1,18 +1,19 @@
-import Background from "./Ground.js";
-// import Bird from "./Bird.js";
-// import Ground from "./Ground.js";
-// import ScoreboardUI from "./ScoreboardUI.js";
-import { GameState } from "./types.js";
+import Background from "./layers/Background.js";
+import Bird from "./Bird.js";
+import Ground from "./layers/Ground.js";
 
 export default class Game {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
-  state: GameState;
+  state: {
+    fps: number;
+    frames: number;
+    interval: undefined | number;
+  };
   elements: {
     background: Background;
-    // ground: Ground;
-    // bird: Bird;
-    // scoreboardUI: ScoreboardUI;
+    ground: Ground;
+    bird: Bird;
   };
 
   constructor(canvas: HTMLCanvasElement) {
@@ -22,73 +23,41 @@ export default class Game {
     this.state = {
       fps: 60,
       frames: 0,
-      speed: 1,
       interval: undefined,
     };
 
     this.elements = {
-      background: new Background(canvas, this),
+      background: new Background(
+        canvas,
+        "./assets/sprites/scenario/default-day.jpg"
+      ),
+      ground: new Ground(canvas, "../assets/sprites/ground.jpg"),
+      bird: new Bird(canvas),
     };
-
-    // this.elements = {
-    //   background: new Background(canvas, this, {
-    //     sprite: "../assets/sprites/scenario/default-day.jpg",
-    //     // sprite: "../assets/sprites/colors/blue.jpg",
-    //   }),
-
-    //   ground: new Ground(canvas, this, {
-    //     sprite: "../assets/sprites/ground.jpg",
-    //     // sprite: "../assets/sprites/colors/red.jpg",
-    //   }),
-    //   bird: new Bird(canvas, this, {
-    //     audios: {
-    //       flap: "../assets/audios/flap.mp3",
-    //     },
-    //     sprites: [
-    //       // "../assets/sprites/colors/yellow.jpg",
-    //       "../assets/sprites/bird/down-flap.png",
-    //       "../assets/sprites/bird/mid-flap.png",
-    //       "../assets/sprites/bird/up-flap.png",
-    //     ],
-    //   }),
-    //   scoreboardUI: new ScoreboardUI(canvas),
-    // };
-
-    // Temporary
-    // canvas.addEventListener("click", () => {
-    //   this.elements.bird.flap();
-    // });
   }
 
-  startGame() {
+  startGame(): void {
     this.state.interval = setInterval(
       () => this.updateFrame(),
       1000 / this.state.fps
     );
   }
 
-  endGame() {
+  endGame(): void {
     clearInterval(this.state.interval);
-    this.render();
   }
 
-  async executeAction(
-    action: "updateFrame" | "render",
-    elements?: Array<string>
-  ) {
-    for await (const key of Object.keys(elements || this.elements)) {
-      const element = this.elements[key as keyof typeof this.elements];
-
-      element?.[action] && (await element[action]());
-    }
-  }
-
-  async updateFrame() {
+  updateFrame(): void {
     this.state.frames++;
-    this.executeAction("updateFrame");
+
+    this.elements.background.updateFrame();
+    this.elements.ground.updateFrame();
+    this.elements.bird.updateFrame();
   }
 
-  async render() {
-    this.executeAction("render");
+  render(): void {
+    this.elements.background.render();
+    this.elements.ground.render();
+    this.elements.bird.render();
   }
 }
