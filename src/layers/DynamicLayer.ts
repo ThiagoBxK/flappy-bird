@@ -52,8 +52,8 @@ export default abstract class DynamicLayer {
   }
 
   public updateFrame(): void {
-    this.drawAllSprites();
     this.moveAllSprites(this.state.speed);
+    this.drawAllSprites();
   }
 
   public render(): void {

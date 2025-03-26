@@ -23,12 +23,12 @@ export default class Bird {
       speed: 1,
       maxSpeed: 60,
       position: {
-        posX: 0,
-        posY: 0,
+        posX: 24,
+        posY: 24,
       },
       size: {
-        height: 24,
-        width: 32,
+        height: 24 * 1.2,
+        width: 32 * 1.2,
       },
       physics: {
         speed: 1.5,
@@ -37,9 +37,9 @@ export default class Bird {
     };
 
     this.sprites = [
-      createImage("../assets/sprites/colors/green.jpg"),
-      createImage("../assets/sprites/colors/red.jpg"),
-      createImage("../assets/sprites/colors/green.jpg"),
+      createImage("../assets/sprites/bird/up-flap.png"),
+      createImage("../assets/sprites/bird/mid-flap.png"),
+      createImage("../assets/sprites/bird/down-flap.png"),
     ];
   }
 
